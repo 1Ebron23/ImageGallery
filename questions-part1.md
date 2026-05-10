@@ -1,3 +1,5 @@
+# Tein Bonus-osan!!!!
+
 # Kysymykset — Osa 1: Lokaali kehitys
 
 Vastaa kysymyksiin omin sanoin. Lyhyet, selkeät vastaukset riittävät — tarkoitus on osoittaa, että olet ymmärtänyt konseptit.
