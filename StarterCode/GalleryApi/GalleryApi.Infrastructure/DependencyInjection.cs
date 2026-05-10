@@ -1,4 +1,4 @@
-using GalleryApi.Domain.Interfaces;
+﻿using GalleryApi.Domain.Interfaces;
 using GalleryApi.Infrastructure.Options;
 using GalleryApi.Infrastructure.Persistence;
 using GalleryApi.Infrastructure.Storage;
@@ -33,7 +33,12 @@ public static class DependencyInjection
         //       services.AddScoped<IStorageService, AzureBlobStorageService>();
         //   else
         //       services.AddScoped<IStorageService, LocalStorageService>();
-        services.AddScoped<IStorageService, LocalStorageService>();
+        var provider = configuration[$"{StorageOptions.SectionName}:Provider"]
+            ?? StorageOptions.LocalProvider;
+        if (provider == StorageOptions.AzureProvider)
+            services.AddScoped<IStorageService, AzureBlobStorageService>(); // Osa 2
+        else
+            services.AddScoped<IStorageService, LocalStorageService>();     // Osa 1 — tämä nyt
 
         return services;
     }

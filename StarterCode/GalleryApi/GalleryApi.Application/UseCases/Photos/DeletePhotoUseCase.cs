@@ -1,4 +1,4 @@
-using GalleryApi.Application.Common;
+﻿using GalleryApi.Application.Common;
 using GalleryApi.Domain.Interfaces;
 
 namespace GalleryApi.Application.UseCases.Photos;
@@ -16,22 +16,19 @@ public class DeletePhotoUseCase
 
     public async Task<Result> ExecuteAsync(Guid photoId)
     {
-        // TODO (Vaihe 8): Toteuta kuvan poistamislogiikka.
-        //
-        // Vaiheet:
-        // 1. Hae kuva tietokannasta:
-        //       var photo = await _photoRepository.GetByIdAsync(photoId);
-        //       if (photo is null) return Result.Failure("Kuvaa ... ei löydy.");
-        //
-        // 2. Poista tiedosto tallennuspalvelusta:
-        //       await _storageService.DeleteAsync(photo.FileName, photo.AlbumId);
-        //
-        // 3. Poista kuva tietokannasta:
-        //       await _photoRepository.DeleteAsync(photoId);
-        //
-        // 4. Palauta onnistunut tulos:
-        //       return Result.Success();
+        // 1. Hae kuva tietokannasta
+        var photo = await _photoRepository.GetByIdAsync(photoId);
+        if (photo is null)
+            return Result.Failure($"Kuvaa {photoId} ei löydy.");
 
-        throw new NotImplementedException("DeletePhotoUseCase ei ole vielä toteutettu. Katso TODO-kommentit.");
+        // 2. Poista tiedosto tallennuspalvelusta
+        //    Käytetään FileName + AlbumId, ei ImageUrl
+        //    (Azure Blob Storagessa URL ei vastaa suoraan blob-nimeä)
+        await _storageService.DeleteAsync(photo.FileName, photo.AlbumId);
+
+        // 3. Poista tietue tietokannasta
+        await _photoRepository.DeleteAsync(photoId);
+
+        return Result.Success();
     }
 }

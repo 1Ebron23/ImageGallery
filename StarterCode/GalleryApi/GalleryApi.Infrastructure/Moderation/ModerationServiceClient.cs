@@ -1,4 +1,4 @@
-using GalleryApi.Infrastructure.Options;
+﻿using GalleryApi.Infrastructure.Options;
 using Microsoft.Extensions.Options;
 
 namespace GalleryApi.Infrastructure.Moderation;
@@ -9,7 +9,7 @@ namespace GalleryApi.Infrastructure.Moderation;
 /// </summary>
 public class ModerationServiceClient
 {
-    private readonly string _apiKey;
+    private readonly ModerationServiceOptions _options;
 
     // TODO (Vaihe 4): Muuta konstruktori ottamaan IOptions<ModerationServiceOptions> parametrina
     //   sijaan string apiKey.
@@ -24,9 +24,9 @@ public class ModerationServiceClient
     //   }
     //
     // Muista muuttaa myös _apiKey-kentän tyyppi (tai poista se ja käytä _options.ApiKey suoraan).
-    public ModerationServiceClient(string apiKey)
+    public ModerationServiceClient(IOptions<ModerationServiceOptions> options)
     {
-        _apiKey = apiKey;
+        _options = options.Value;
     }
 
     /// <summary>

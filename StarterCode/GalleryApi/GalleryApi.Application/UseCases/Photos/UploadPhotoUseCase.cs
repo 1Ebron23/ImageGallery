@@ -1,4 +1,4 @@
-using GalleryApi.Application.Common;
+﻿using GalleryApi.Application.Common;
 using GalleryApi.Application.DTOs;
 using GalleryApi.Domain.Entities;
 using GalleryApi.Domain.Interfaces;
@@ -30,41 +30,50 @@ public class UploadPhotoUseCase
 
     public async Task<Result<PhotoDto>> ExecuteAsync(UploadPhotoRequest request)
     {
-        // TODO (Vaihe 7): Toteuta kuvan latauslogiikka.
-        //
-        // Vaiheet:
-        // 1. Tarkista että albumi on olemassa:
-        //       var album = await _albumRepository.GetByIdAsync(request.AlbumId);
-        //       if (album is null) return Result<PhotoDto>.Failure("Albumia ... ei löydy.");
-        //
-        // 2. Validoi tiedostotyyppi:
-        //       if (!AllowedContentTypes.Contains(request.ContentType))
-        //           return Result<PhotoDto>.Failure("Tiedostotyyppi ei ole sallittu.");
-        //
-        // 3. Validoi tiedoston koko:
-        //       if (request.FileSize > MaxFileSizeBytes)
-        //           return Result<PhotoDto>.Failure("Tiedosto on liian suuri.");
-        //
-        // 4. Lataa tiedosto tallennuspalveluun — kääri try-catchiin:
-        //       string imageUrl;
-        //       try
-        //       {
-        //           imageUrl = await _storageService.UploadAsync(
-        //               request.FileStream, request.FileName,
-        //               request.ContentType, request.AlbumId);
-        //       }
-        //       catch (Exception ex)
-        //       {
-        //           return Result<PhotoDto>.Failure($"Tiedoston tallennus epäonnistui: {ex.Message}");
-        //       }
-        //
-        // 5. Luo Photo-entiteetti ja tallenna tietokantaan — VAIN onnistuneen uploadin jälkeen:
-        //       var photo = new Photo { ... };
-        //       var saved = await _photoRepository.CreateAsync(photo);
-        //
-        // 6. Palauta onnistunut tulos:
-        //       return Result<PhotoDto>.Success(new PhotoDto(...));
+        // 1. Tarkista että albumi on olemassa
+        var album = await _albumRepository.GetByIdAsync(request.AlbumId);
+        if (album is null)
+            return Result<PhotoDto>.Failure($"Albumia {request.AlbumId} ei löydy.");
 
-        throw new NotImplementedException("UploadPhotoUseCase ei ole vielä toteutettu. Katso TODO-kommentit.");
+        // 2. Validoi tiedostotyyppi
+        if (!AllowedContentTypes.Contains(request.ContentType))
+            return Result<PhotoDto>.Failure(
+                $"Tiedostotyyppi '{request.ContentType}' ei ole sallittu. " +
+                $"Sallitut tyypit: {string.Join(", ", AllowedContentTypes)}");
+
+        // 3. Validoi tiedoston koko
+        if (request.FileSize > MaxFileSizeBytes)
+            return Result<PhotoDto>.Failure(
+                $"Tiedosto on liian suuri. Maksimikoko on {MaxFileSizeBytes / (1024 * 1024)} MB.");
+
+        // 4. Lataa tiedosto tallennuspalveluun — kääri try-catchiin
+        //    Jos upload epäonnistuu, kantaan ei tallenneta mitään
+        string imageUrl;
+        try
+        {
+            imageUrl = await _storageService.UploadAsync(
+                request.FileStream, request.FileName, request.ContentType, request.AlbumId);
+        }
+        catch (Exception ex)
+        {
+            return Result<PhotoDto>.Failure($"Tiedoston tallennus epäonnistui: {ex.Message}");
+        }
+
+        // 5. Tallenna tiedot tietokantaan — vain onnistuneen uploadin jälkeen
+        var photo = new Photo
+        {
+            Id = Guid.NewGuid(),
+            AlbumId = request.AlbumId,
+            Title = request.Title,
+            FileName = request.FileName,
+            ImageUrl = imageUrl,
+            ContentType = request.ContentType,
+            FileSizeBytes = request.FileSize,
+            UploadedAt = DateTime.UtcNow
+        };
+        var saved = await _photoRepository.CreateAsync(photo);
+
+        return Result<PhotoDto>.Success(new PhotoDto(saved.Id, saved.AlbumId, saved.Title,
+            saved.ImageUrl, saved.ContentType, saved.FileSizeBytes, saved.UploadedAt));
     }
 }

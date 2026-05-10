@@ -57,3 +57,8 @@ publish/
 StarterCode/GalleryApi/GalleryApi.WebApi/gallery.db
 StarterCode/GalleryApi/GalleryApi.WebApi/gallery.db-shm
 StarterCode/GalleryApi/GalleryApi.WebApi/gallery.db-wal
+
+*.db
+*.db-shm
+*.db-wal
+wwwroot/uploads/
